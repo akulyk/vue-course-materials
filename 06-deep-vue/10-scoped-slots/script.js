@@ -3,14 +3,23 @@ import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.esm.browser.js
 const ListView = {
   template: `
     <div>
-    <form @submit.prevent="handleSubmit">
-      <input v-model="newItemValue" />
-      <button>Add</button>
-    </form>
+    <slot
+      name="form"
+      :add="addNewItem"
+      :newItemValue="newItemValue"
+      :updateNewItemValue="(value) => { newItemValue = value }"
+    >
+      <form @submit.prevent="handleSubmit">
+        <input v-model="newItemValue" />
+        <button>Add</button>
+      </form>
+    </slot>
     <ul>
       <li v-for="(item, idx) in items_">
-        <span>{{ item }}</span>
-        <button @click="remove(idx)">x</button>
+        <slot name="item" :item="item" :removeItem="() => remove(idx)" :idx="idx">
+          <span>{{ item }}</span>
+          <button @click="remove(idx)">x</button>
+        </slot>
       </li>
     </ul>
     </div>`,
@@ -58,7 +67,19 @@ const App = {
   template: `
     <div>
       <h3>ListView</h3>
-      <list-view :items.sync="list" />
+      <list-view :items.sync="list">
+
+        <template #form="{ add, newItemValue, updateNewItemValue }">
+          <form @submit.prevent="add()">
+            <input :value="newItemValue" @input="updateNewItemValue($event.target.value)" />
+          </form>
+        </template>
+
+        <template #item="{ item, idx, removeItem }">
+          <a href="#" @click="removeItem">{{ item }}</a>
+        </template>
+
+      </list-view>
     </div>`,
 
   components: {
